@@ -35,7 +35,6 @@ const productSchema = new Schema<IProduct>({
   category: {
     type: String,
     required: true,
-    enum: ['софт-скил', 'хард-скил', 'другое', 'дополнительное', 'кнопка'],
   },
   description: {
     type: String,
