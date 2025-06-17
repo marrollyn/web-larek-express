@@ -1,14 +1,15 @@
 import { Response, Request, NextFunction } from 'express';
 import product from '../models/product';
-import ConflictError from '../errors/conflict-err';
 
 export default async function postProduct(req: Request, res: Response, next: NextFunction) {
   const newProduct = req.body;
 
   try {
-    const productCheck = await product.findOne({ title: { $in: newProduct.title } });
+    const productCheck = await product.findOne({ title: newProduct.title });
     if (productCheck) {
-      return next(new ConflictError('товар с таким title уже есть в БД'));
+      return res
+        .status(409)
+        .json({ message: 'товар с таким title уже есть в БД' });
     }
     const createdProduct = await product.create(newProduct);
     return res.status(201).json(createdProduct);

@@ -1,21 +1,22 @@
+import dotenv from 'dotenv';
 import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import { errors } from 'celebrate';
 import writingDB from './utils/writeDB/writingDB';
 import productRouter from './routes/product';
 import orderRouter from './routes/order';
 import errorHandler from './middlewares/err-handler';
 import { requestLogger, errorLogger, infoLogger } from './middlewares/logger';
 
-const { PORT = 3000 } = process.env;
-const MONGO_URI = 'mongodb://127.0.0.1:27017/weblarek';
+dotenv.config();
+const PORT = Number(process.env.PORT);
+const DB_ADDRESS = String(process.env.DB_ADDRESS);
 
 async function startApp() {
   try {
     // 1) подключаемся к БД
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(DB_ADDRESS);
     infoLogger.info('DB ok');
 
     // 2) записываем данные
@@ -48,7 +49,6 @@ async function startApp() {
 
     // // 8) logger, errorHandler
     app.use(errorLogger);
-    app.use(errors());
     app.use(errorHandler);
 
     // 9) запуск сервера

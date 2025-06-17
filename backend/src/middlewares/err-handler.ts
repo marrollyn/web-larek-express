@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { isCelebrateError, CelebrateError } from 'celebrate';
 import BadRequestError from '../errors/bad-req-err';
 import NotFoundError from '../errors/not-found-err';
 import ConflictError from '../errors/conflict-err';
@@ -9,6 +10,12 @@ export default function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
+  // celebrate
+  if (isCelebrateError(err)) {
+    const error = (err as CelebrateError).details.get('body');
+    const message = error?.message || 'Validation failed';
+    return res.status(400).json({ message });
+  }
   // Joi-ошибки
   if (err.isJoi) {
     const messages = err.details.map((d: any) => d.message).join('; ');

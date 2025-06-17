@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
-import Joi from 'joi';
+import { ValidationError } from 'joi';
 import { faker } from '@faker-js/faker';
 import product from '../models/product';
 import BadRequestError from '../errors/bad-req-err';
@@ -20,39 +20,13 @@ export interface IOrderRes {
     total: number
 }
 
-const orderValidSchema = Joi.object({
-  payment: Joi.string().valid('card', 'online').required(),
-  email: Joi.string()
-    .email()
-    .pattern(
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      'указан некорректный email',
-    )
-    .messages({
-      'string.pattern.name': 'поле email должно быть валидным адресом',
-      'string.empty': 'поле email не может быть пустым',
-      'any.required': 'поле email обязательно',
-    })
-    .required(),
-  phone: Joi.string().trim().required(),
-  address: Joi.string().trim().required(),
-  total: Joi.number().min(1).required(),
-  items: Joi.array().items(
-    Joi.string()
-      .hex()
-      .length(24)
-      .message('ID товара должен быть 24-символьной hex-строкой')
-      .required(),
-  ).min(1).required(),
-}).unknown(false);
-
 export default async function postOrder(
   req: Request <{}, IOrderRes, IOrderReq>,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const value = await orderValidSchema.validateAsync(req.body, { abortEarly: false });
+    const value = req.body;
 
     const products = await product.find({ _id: { $in: value.items } });
     if (products.length !== value.items.length) {
@@ -70,8 +44,11 @@ export default async function postOrder(
     }
 
     const orderId = faker.string.uuid();
-    return res.status(201).json({ id: orderId, total: value.total });
+    return res.status(200).json({ id: orderId, total: value.total });
   } catch (err) {
+    if (err instanceof ValidationError) {
+      return res.status(400).json({ message: err.message });
+    }
     return next(err);
   }
 }
