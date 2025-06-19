@@ -3,7 +3,6 @@ import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import { errors } from 'celebrate';
 import writingDB from './utils/writeDB/writingDB';
 import productRouter from './routes/product';
 import orderRouter from './routes/order';
@@ -51,7 +50,6 @@ async function startApp() {
 
     // // 8) logger, errorHandler
     app.use(errorLogger);
-    app.use(errors());
     app.use(errorHandler);
 
     // 9) запуск сервера
