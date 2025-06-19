@@ -1,5 +1,4 @@
 import { Response, Request, NextFunction } from 'express';
-import { ValidationError } from 'joi';
 import { faker } from '@faker-js/faker';
 import product from '../models/product';
 import BadRequestError from '../errors/bad-req-err';
@@ -46,9 +45,6 @@ export default async function postOrder(
     const orderId = faker.string.uuid();
     return res.status(200).json({ id: orderId, total: value.total });
   } catch (err) {
-    if (err instanceof ValidationError) {
-      return res.status(400).json({ message: err.message });
-    }
     return next(err);
   }
 }

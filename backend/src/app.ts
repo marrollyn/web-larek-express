@@ -9,10 +9,13 @@ import productRouter from './routes/product';
 import orderRouter from './routes/order';
 import errorHandler from './middlewares/err-handler';
 import { requestLogger, errorLogger, infoLogger } from './middlewares/logger';
+import NotFoundError from './errors/not-found-err';
 
 dotenv.config();
-const PORT = Number(process.env.PORT);
-const DB_ADDRESS = String(process.env.DB_ADDRESS);
+const DEF_PORT = 3000;
+const DEF_DB_ADDRESS = 'mongodb://127.0.0.1:27017/weblarek';
+const PORT = Number(process.env.PORT) || DEF_PORT;
+const DB_ADDRESS = String(process.env.DB_ADDRESS) || DEF_DB_ADDRESS;
 
 async function startApp() {
   try {
@@ -44,9 +47,7 @@ async function startApp() {
     // // 6) Защищённые роуты
 
     // // 7) 404
-    app.use((_req, res) => {
-      res.status(404).json({ message: 'Not Found' });
-    });
+    app.use((_req, _res, next) => next(new NotFoundError('Not Found')));
 
     // // 8) logger, errorHandler
     app.use(errorLogger);

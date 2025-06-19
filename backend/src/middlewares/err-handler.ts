@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { isCelebrateError, CelebrateError } from 'celebrate';
-import BadRequestError from '../errors/bad-req-err';
-import NotFoundError from '../errors/not-found-err';
-import ConflictError from '../errors/conflict-err';
+import mongoose from 'mongoose';
 
 export default function errorHandler(
   err: any,
@@ -21,12 +19,10 @@ export default function errorHandler(
     const messages = err.details.map((d: any) => d.message).join('; ');
     return res.status(400).json({ message: messages });
   }
-  // кастомные ошибки
-  if (err instanceof BadRequestError
-   || err instanceof NotFoundError
-   || err instanceof ConflictError
-  ) {
-    return res.status(err.statusCode).json({ message: err.message });
+
+  // mogoose schema
+  if (err instanceof mongoose.Error.ValidationError) {
+    return res.status(400).json({ message: err.message });
   }
 
   // Mongo
@@ -34,6 +30,7 @@ export default function errorHandler(
     return res.status(409).json({ message: 'такой товар уже существует' });
   }
 
-  // 500
-  return res.status(500).json({ message: 'на сервере произошла ошибка' });
+  // кастомные ошибки и 500
+  const statusCode = err.statusCode || 500;
+  return res.status(statusCode).json({ message: err.message || 'Ошибка сервера' });
 }
